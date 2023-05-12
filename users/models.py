@@ -10,3 +10,10 @@ class User(AbstractUser):
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
+
+
+class Summary(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField(blank=True)
+    summary = models.TextField(blank=True)
+    pub_date = models.DateTimeField(auto_now_add=True)

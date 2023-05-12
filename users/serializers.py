@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Summary
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -18,3 +18,16 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
     
+class SummarySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Summary
+        fields = ['email','text','summary','pub_date']
+        
+    def create(self, validated_data):
+        print(validated_data)
+        instance = Summary(**validated_data)
+        instance.save()
+        return instance
+
+
+

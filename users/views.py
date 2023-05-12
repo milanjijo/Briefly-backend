@@ -2,10 +2,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
-from .serializers import UserSerializer
-from .models import User
+from .serializers import UserSerializer, SummarySerializer
+from .models import User,Summary
 import jwt, datetime
-
+from .summ import SummariserCosine
 
 # Create your views here.
 class RegisterView(APIView):
@@ -43,8 +43,8 @@ class LoginView(APIView):
         response.data = {
             'jwt': token
         }
-
-        return response
+        print(request.data)
+        return response 
 
 class UserView(APIView):
 
@@ -72,3 +72,26 @@ class LogoutView(APIView):
             'message': 'success'
         }
         return response
+    
+class LogicView(APIView):
+    def post(self, request):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            raise AuthenticationFailed('Unauthenticated!')
+
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Unauthenticated!')
+        if request.FILES.get('audio'):
+            audio_file = request.FILES['audio']
+        return Response(True)
+
+        # user = User.objects.filter(id=payload['id']).first()
+        # text = request.data.get(text)  
+        # s,r =  SummariserCosine().generate_summary(text)
+        # processedtext = Summary(user= user, text=text, summary=s)
+        # processedtext.save()
+        # return Response(processedtext.text)
+        
