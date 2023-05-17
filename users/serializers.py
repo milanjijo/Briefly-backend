@@ -21,13 +21,18 @@ class UserSerializer(serializers.ModelSerializer):
 class SummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Summary
-        fields = ['email','text','summary','pub_date']
+        fields ='__all__'
+
+class ViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Summary
+        fields =['id','name','description','pub_date']
         
-    def create(self, validated_data):
-        print(validated_data)
-        instance = Summary(**validated_data)
-        instance.save()
-        return instance
+        # ['sid','name','pub_date']
+        
+    # sid = serializers.IntegerField(source='Summary.id', read_only = True )
+    # name = serializers.CharField(source='Summary.name', read_only = True )
+    # pub_date = serializers.DateField(source='Summary.pub_date', read_only = True )
 
 
 

@@ -13,7 +13,9 @@ class User(AbstractUser):
 
 
 class Summary(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255,blank=True)
+    description = models.TextField(blank=True)
     text = models.TextField(blank=True)
     summary = models.TextField(blank=True)
     pub_date = models.DateTimeField(auto_now_add=True)

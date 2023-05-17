@@ -1,10 +1,14 @@
 # Create your views here.
 from rest_framework.views import APIView
+from rest_framework import generics
+
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
-from .serializers import UserSerializer, SummarySerializer
+from .serializers import UserSerializer, SummarySerializer, ViewSerializer
 from .models import User,Summary
 import jwt, datetime
+from django.core.files.storage import default_storage
+
 from .summ import SummariserCosine
 
 # Create your views here.
@@ -61,6 +65,7 @@ class UserView(APIView):
 
         user = User.objects.filter(id=payload['id']).first()
         serializer = UserSerializer(user)
+        print(serializer)
         return Response(serializer.data)
 
 
@@ -84,14 +89,64 @@ class LogicView(APIView):
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
         except jwt.ExpiredSignatureError:
             raise AuthenticationFailed('Unauthenticated!')
-        if request.FILES.get('audio'):
-            audio_file = request.FILES['audio']
-        return Response(True)
+        # if request.FILES.get('audio'):
+        #     audio_file = request.FILES['audio']
+        #     #  Saving POST'ed file to storage
+        #     file_name = default_storage.save(audio_file.name, audio_file)
+        # return Response(True)
 
-        # user = User.objects.filter(id=payload['id']).first()
-        # text = request.data.get(text)  
+        user = User.objects.filter(id=payload['id']).first()
+        name = request.data.get('name')
+        # description = request.data.get(description)
+        description=""
+        text = ""  
+        s=""
         # s,r =  SummariserCosine().generate_summary(text)
-        # processedtext = Summary(user= user, text=text, summary=s)
-        # processedtext.save()
-        # return Response(processedtext.text)
+        processedtext = Summary(user= user,name=name,description=description,text=text, summary=s)
+        processedtext.save()
+        return Response(processedtext.text)
+    
+class DashboardView(APIView):
+    serializer_class = SummarySerializer
+
+    def get(self, request):
+    #     token = request.COOKIES.get('jwt')
+
+    #     if not token:
+    #         raise AuthenticationFailed('Unauthenticated!')
+
+    #     try:
+    #         payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+    #     except jwt.ExpiredSignatureError:
+    #         raise AuthenticationFailed('Unauthenticated!')
         
+    #     user = User.objects.filter(id=payload['id']).first()
+        queryset = Summary.objects.filter(user_id = 1)
+        serializer = ViewSerializer(data=queryset, many=True)
+        if serializer.is_valid():
+            print(serializer.data)  
+        return Response(serializer.data)
+    
+class EventView(APIView):
+    def get(self,request, id=None):
+        summary = Summary.objects.filter(id=id).first()
+        serializer= SummarySerializer(summary)
+        return Response(serializer.data)
+        # Response(serializer.errors)
+
+class EditView(APIView):
+
+    def put(self,request, id=None):
+        summary = Summary.objects.filter(id=id).first()
+        serializer= SummarySerializer(summary, data=request.data, partial= True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        Response(serializer.errors)
+
+    def delete(self, id):
+        summary = Summary.objects.get(id=id)
+        summary.delete()
+        Response({"status" : "success"})
+
+
